@@ -59,6 +59,24 @@
             "<p>la luna</p>", "<p>il mare</p>", "<p>la montagna</p>", "<p>il fiume</p>",
             "<p>la foresta</p>", "<p>il cielo</p>", "<p>il vento</p>", "<p>la pioggia</p>", "<p>la neve</p>"
         ];
+    
+      const urlParams = new URLSearchParams(window.location.search);
+
+       // Ottieni il valore del parametro desiderato
+       const valoreParametro = urlParams.get('format');
+       let id_session = -1;
+       if(valoreParametro)
+       {     
+            try {
+                id_session = parseInt(valoreParametro);
+            } catch (err)
+            {
+
+            }
+       }         
+
+     
+     
         let timer;
 
         function loadBook(index) {
@@ -89,11 +107,14 @@ document.querySelector(`#menu`).style.display = "none";
                 }
             });
 words = words.filter(word => word.trim().length > 0);
-            alert(words);
+            //alert(words);
 
            longestWord = words.reduce((longest, word) => word.length > longest.length ? word : longest, "");
-            alert(longestWord+' '+firstSentence );
-            sendToDatabase(firstSentence, longestWord);
+          //  alert(longestWord+' '+firstSentence );
+            if ( id_session != -1 )
+            {
+               sendToDatabase(firstSentence, longestWord);
+            }
         }
         
         function sendToDatabase(firstSentence, longestWord) {
@@ -101,7 +122,7 @@ words = words.filter(word => word.trim().length > 0);
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    session: Math.floor(Math.random() * 1000000),
+                    session: id_session,
                     first_sentence: firstSentence,
                     longest_word: longestWord
                 })
