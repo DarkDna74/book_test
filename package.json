@@ -1,0 +1,11 @@
+{
+  "name": "progetto-supabase",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^1.28.5"
+  },
+  "scripts": {
+    "start": "node api/save.js"
+  }
+}
