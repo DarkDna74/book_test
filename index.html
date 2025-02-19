@@ -1,0 +1,111 @@
+ 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testo Visibile</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        .visible { background-color: yellow; }
+        #info { position: fixed; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.8); color: white; padding: 10px; border-radius: 5px; }
+        #menu { position: fixed; top: 10px; right: 10px; background: white; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <button onclick="loadBook(0)">Libro 1</button>
+        <button onclick="loadBook(1)">Libro 2</button>
+        <button onclick="loadBook(2)">Libro 3</button>
+        <button onclick="loadBook(3)">Libro 4</button>
+        <button onclick="loadBook(4)">Libro 5</button>
+        <button onclick="loadBook(5)">Libro 6</button>
+        <button onclick="loadBook(6)">Libro 7</button>
+        <button onclick="loadBook(7)">Libro 8</button>
+        <button onclick="loadBook(8)">Libro 9</button>
+        <button onclick="loadBook(9)">Libro 10</button>
+    </div>
+    
+    <div id="content" style="display: none;"></div>
+
+    <script>
+        const books = [ `<p> C'era una volta, in un piccolo villaggio situato tra le montagne, una giovane ragazza di nome Elena. </p>
+<p> Elena viveva in una casa di legno con i suoi genitori e il suo fratellino, Luca. </p>
+<p> Ogni mattina, Elena si svegliava presto per aiutare sua madre a preparare la colazione e svolgere le faccende domestiche. </p>
+<p> Dopo aver terminato i suoi compiti, Elena correva verso il bosco vicino per raccogliere fiori e bacche selvatiche. </p>
+<p> Un giorno, mentre esplorava una parte del bosco che non aveva mai visitato prima, Elena trovò una vecchia mappa nascosta sotto una pietra. </p>
+<p> La mappa mostrava il percorso per trovare un tesoro nascosto, e Elena decise di seguirla. </p>
+<p> Con grande entusiasmo, tornò a casa e raccontò a Luca della sua scoperta. </p>
+<p> I due fratelli, pieni di curiosità, decisero di partire all'alba del giorno successivo per cercare il tesoro. </p>
+<p> Prepararono uno zaino con cibo, acqua e una torcia, e si misero in cammino seguendo le indicazioni della mappa. </p>
+<p> La prima tappa del loro viaggio li portò a un antico ponte di legno che attraversava un fiume cristallino. </p>
+<p> Superato il ponte, dovettero attraversare una fitta foresta dove gli alberi sembravano toccare il cielo. </p>
+<p> Dopo ore di cammino, raggiunsero una radura in cui si trovava un vecchio castello in rovina. </p>
+<p> Secondo la mappa, il tesoro era nascosto all'interno del castello, così Elena e Luca si avventurarono tra le mura di pietra. </p>
+<p> Mentre esploravano le stanze polverose e buie, sentirono un rumore strano provenire da una delle torri. </p>
+<p> Salirono le scale a chiocciola fino a raggiungere la cima della torre, dove trovarono un vecchio forziere incatenato. </p>
+<p> Con molta fatica, riuscirono ad aprire il forziere e dentro trovarono gioielli scintillanti e monete d'oro. </p>
+<p> Ma il tesoro non era l'unica cosa che trovarono: accanto al forziere c'era un antico libro di magia. </p>
+<p> Elena e Luca decisero di portare il libro a casa, sperando di scoprire i suoi segreti. </p>
+<p> Tornarono al villaggio con il tesoro e il libro, e raccontarono la loro avventura ai genitori e agli amici. </p>
+<p> La notizia del loro straordinario ritrovamento si diffuse rapidamente, e presto il villaggio divenne famoso in tutta la regione. </p>
+<p> Grazie al tesoro, la famiglia di Elena e Luca poté migliorare la loro vita e contribuire al benessere della comunità. </p>
+<p> Ma ciò che più appassionava Elena era il libro di magia, che studiava ogni notte sotto la luce delle stelle. </p>
+<p> Col tempo, Elena imparò a utilizzare le antiche arti magiche e divenne una guaritrice molto rispettata nel villaggio. </p>
+<p> Così, la giovane ragazza che un tempo esplorava il bosco alla ricerca di fiori, diventò una figura leggendaria conosciuta per la sua saggezza e il suo coraggio. </p>
+<p> E vissero tutti felici e contenti, in un villaggio prospero e armonioso, grazie alla determinazione e alla curiosità di Elena e Luca. </p>`,
+            "<p>la casa</p><p>con il giardino</p>",
+            "<p>la luna</p>", "<p>il mare</p>", "<p>la montagna</p>", "<p>il fiume</p>",
+            "<p>la foresta</p>", "<p>il cielo</p>", "<p>il vento</p>", "<p>la pioggia</p>", "<p>la neve</p>"
+        ];
+        let timer;
+
+        function loadBook(index) {
+document.querySelector(`#menu`).style.display = "none";
+//document.getElementById("menu").style.display = null;
+            document.getElementById("content").innerHTML = books[index];
+            document.getElementById("content").style.display = "block";
+      //      document.getElementById("info").innerHTML = "Scorri per vedere il testo visibile...";
+            startTimer();
+        }
+
+        function startTimer() {
+            clearTimeout(timer);
+            timer = setTimeout(saveVisibleText, 10000);
+        }
+
+        function saveVisibleText() {
+            const paragraphs = document.querySelectorAll("p");
+            let firstSentence = "", longestWord = "";
+            let words = [];
+            alert('sono qui');
+            paragraphs.forEach(p => {
+                const rect = p.getBoundingClientRect();
+                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                    if (!firstSentence) {firstSentence = p.textContent.split(".")[0];
+                 words.push(...p.textContent.split(" "));}
+//   words = words.concat(p.textContent.split(" "));
+                }
+            });
+words = words.filter(word => word.trim().length > 0);
+            alert(words);
+
+           longestWord = words.reduce((longest, word) => word.length > longest.length ? word : longest, "");
+            alert(longestWord+' '+firstSentence );
+            sendToDatabase(firstSentence, longestWord);
+        }
+        
+        function sendToDatabase(firstSentence, longestWord) {
+            fetch("/api/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session: Math.floor(Math.random() * 1000000),
+                    first_sentence: firstSentence,
+                    longest_word: longestWord
+                })
+            });
+        }
+    </script>
+</body>
+</html>
