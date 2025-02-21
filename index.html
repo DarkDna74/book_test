@@ -105,7 +105,7 @@
 
 document.addEventListener("touchstart", () => 
  { clearTimeout(timer); // Resetta il timer se viene toccato di nuovo 
-  timer = setTimeout(() => { console.log("Timer scaduto!"); }, 10000); // Imposta il timer a 3 secondi
+  timer = setTimeout(saveVisibleText , 10000); // Imposta il timer a 3 secondi
  });
 
 
