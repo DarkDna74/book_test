@@ -102,6 +102,12 @@
      
         let timer;
 
+
+document.addEventListener("touchstart", () => 
+ { clearTimeout(timer); // Resetta il timer se viene toccato di nuovo 
+  timer = setTimeout(() => { console.log("Timer scaduto!"); }, 10000); // Imposta il timer a 3 secondi });
+
+
         function loadBook(index) {
 document.querySelector(`#menu`).style.display = "none";
 //document.getElementById("menu").style.display = null;
