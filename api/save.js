@@ -6,10 +6,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function login() {
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: "tommaso.guglielmi@gmail.com",
-            password: "XdragoSupa21!"
-        });
+       const { data, error } = await supabase.auth.signIn({
+  email: "tommaso.guglielmi@gmail.com",
+  password: "XdragoSupa21!"
+});
 
         if (error) {
             console.error("Errore di login:", error.message);
