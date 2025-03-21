@@ -287,7 +287,7 @@
             });
             
             if (!visibleText) return;
-            
+            alert(visibleText);
             visibleText = visibleText.trim();
             words = words.filter(word => word.trim().length > 0);
             const longestWord = words.reduce((longest, word) => {
