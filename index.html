@@ -1,0 +1,145 @@
+ 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testo Visibile</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        .visible { background-color: yellow; }
+        #info { position: fixed; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.8); color: white; padding: 10px; border-radius: 5px; }
+        #menu { position: fixed; top: 10px; right: 10px; background: white; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <button onclick="loadBook(0)">Libro 1</button>
+        <button onclick="loadBook(1)">Libro 2</button>
+        <button onclick="loadBook(2)">Libro 3</button>
+        <button onclick="loadBook(3)">Libro 4</button>
+        <button onclick="loadBook(4)">Libro 5</button>
+        <button onclick="loadBook(5)">Libro 6</button>
+        <button onclick="loadBook(6)">Libro 7</button>
+        <button onclick="loadBook(7)">Libro 8</button>
+        <button onclick="loadBook(8)">Libro 9</button>
+        <button onclick="loadBook(9)">Libro 10</button>
+    </div>
+    
+    <div id="content" style="display: none;"></div>
+
+    <script>
+       
+    
+      const urlParams = new URLSearchParams(window.location.search);
+
+       // Ottieni il valore del parametro desiderato
+       const valoreParametro = urlParams.get('format');
+       let id_session = -1;
+       if(valoreParametro)
+       {     
+            try {
+                id_session = parseInt(valoreParametro);
+            } catch (err)
+            {
+
+            }
+       }         
+
+     
+     
+        let timer;
+
+
+document.addEventListener("touchstart", () => { 
+    clearTimeout(timer); // Resetta il timer se viene toccato di nuovo 
+    timer = setTimeout(saveVisibleText , 10000); // Imposta il timer a 3 secondi
+ });
+
+
+ function splitParagraphs(text) {
+    const lines = text.split('.').map(line => line.trim()).filter(line => line);
+    let paragraphs= lines.map(line => `<p>${line}</p>`);
+    return paragraphs.join('');
+}
+
+
+async function get_book(name) {
+
+    try{
+        const response = await fetch(`/api/get_book?name=${name}.txt`);
+        const data = await response.text();
+        return data;
+
+    } catch (error) {
+        console.error(`Error loading ${type}:`, error);
+    }
+}
+    
+
+ function loadBook(index) {
+            let text = get_book(index);
+            text = splitParagraphs(text);
+            document.querySelector(`#menu`).style.display = "none";
+//document.getElementById("menu").style.display = null;
+            document.getElementById("content").innerHTML = text;
+            document.getElementById("content").style.display = "block";
+      //      document.getElementById("info").innerHTML = "Scorri per vedere il testo visibile...";
+            startTimer();
+        }
+
+
+/*
+        function loadBook2(index) {
+            document.querySelector(`#menu`).style.display = "none";
+            //document.getElementById("menu").style.display = null;
+            document.getElementById("content").innerHTML = books[index];
+            document.getElementById("content").style.display = "block";
+            //document.getElementById("info").innerHTML = "Scorri per vedere il testo visibile...";
+            startTimer();
+        }*/
+
+        function startTimer() {
+            clearTimeout(timer);
+            timer = setTimeout(saveVisibleText, 10000);
+        }
+
+        function saveVisibleText() {
+            const paragraphs = document.querySelectorAll("p");
+            let firstSentence = "", longestWord = "";
+            let words = [];
+           // alert('sono qui');
+            paragraphs.forEach(p => {
+                const rect = p.getBoundingClientRect();
+                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                    if (!firstSentence) {firstSentence = p.textContent.split(".")[0];
+                 words.push(...p.textContent.split(" "));}
+//   words = words.concat(p.textContent.split(" "));
+                }
+            });
+words = words.filter(word => word.trim().length > 0);
+            //alert(words);
+
+           longestWord = words.reduce((longest, word) => word.length > longest.length ? word : longest, "");
+          //  alert(longestWord+' '+firstSentence );
+            if ( id_session != -1 )
+            {
+               sendToDatabase(firstSentence, longestWord);
+            }
+        }
+        
+        function sendToDatabase(firstSentence, longestWord) {
+            fetch("/api/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session: id_session,
+                    first_sentence: firstSentence,
+                    longest_word: longestWord
+                })
+            });
+        }
+    </script>
+</body>
+</html>
