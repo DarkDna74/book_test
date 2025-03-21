@@ -80,6 +80,7 @@ async function get_book(name) {
 
  function loadBook(index) {
             let text = get_book(index);
+            consoloe.log(text);
             text = splitParagraphs(text);
             document.querySelector(`#menu`).style.display = "none";
 //document.getElementById("menu").style.display = null;
