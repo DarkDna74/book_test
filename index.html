@@ -277,7 +277,7 @@
             
             paragraphs.forEach(p => {
                 const rect = p.getBoundingClientRect();
-                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                if (rect.bottom > 0 && rect.top < window.innerHeight) {
                     if (!firstVisibleParagraph) {
                         firstVisibleParagraph = p.textContent;
                         words = [...p.textContent.split(/\s+/)];
