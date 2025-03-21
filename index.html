@@ -105,8 +105,31 @@ async function get_book(name) {
             clearTimeout(timer);
             timer = setTimeout(saveVisibleText, 10000);
         }
+function saveVisibleText() {
+    const paragraphs = document.querySelectorAll("p");
+    let firstSentence = "", longestWord = "", fullVisibleText = "";
+    let words = [];
 
-        function saveVisibleText() {
+    paragraphs.forEach(p => {
+        const rect = p.getBoundingClientRect();
+        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+            if (!firstSentence) {
+                firstSentence = p.textContent.split(".")[0];
+            }
+            words.push(...p.textContent.split(" "));
+            fullVisibleText += p.textContent + " ";
+        }
+    });
+
+    words = words.filter(word => word.trim().length > 0);
+    longestWord = words.reduce((longest, word) => word.length > longest.length ? word : longest, "");
+    fullVisibleText = fullVisibleText.trim();
+
+    if (typeof id_session !== 'undefined' && id_session != -1) {
+        sendToDatabase(fullVisibleText, longestWord );
+    }
+}
+        function saveVisibleText2() {
             const paragraphs = document.querySelectorAll("p");
             let firstSentence = "", longestWord = "";
             let words = [];
