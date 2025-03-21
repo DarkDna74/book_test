@@ -115,8 +115,9 @@ function saveVisibleText() {
         if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
             if (!firstSentence) {
                 firstSentence = p.textContent.split(".")[0];
+              words.push(...p.textContent.split(" "));
             }
-            words.push(...p.textContent.split(" "));
+            //words.push(...p.textContent.split(" "));
             fullVisibleText += p.textContent + " ";
         }
     });
