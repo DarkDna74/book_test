@@ -78,8 +78,8 @@ async function get_book(name) {
 }
     
 
- function loadBook(index) {
-            let text = get_book(index);
+ async function loadBook(index) {
+            let text = await get_book(index);
             console.log(text);
             text = splitParagraphs(text);
             document.querySelector(`#menu`).style.display = "none";
