@@ -2,334 +2,136 @@
 <html lang="it">
 <head>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiblioTech Reader</title>
+    <title>Lettore di Testo</title>
     <style>
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
-            --text-color: #1e293b;
-            --bg-color: #f8fafc;
-            --highlight-color: #fef08a;
-            --highlight-shadow: rgba(254, 240, 138, 0.7);
-            --transition-speed: 0.3s;
+            --primary-color: #3498db;
+            --background-color: #f9f9f9;
+            --text-color: #333;
+            --menu-bg: #fff;
+            --menu-border: #e0e0e0;
         }
-
+        
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.8;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-            padding: 0;
             margin: 0;
-            transition: background-color 0.5s ease;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            padding: 15px;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            max-width: 100%;
             overflow-x: hidden;
         }
-
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        #header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            position: relative;
-            z-index: 100;
-        }
-
-        #header h1 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        #header p {
-            opacity: 0.9;
-            margin-top: 0.5rem;
-        }
-
-        #menu {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-            padding: 1.5rem;
-            background-color: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 99;
-            transition: all 0.3s ease;
-        }
-
-        #menu.hidden {
-            transform: translateY(-100%);
-        }
-
-        #menu button {
-            background: white;
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 0.75rem 1.25rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-            font-size: 1rem;
-            min-width: 100px;
-        }
-
-        #menu button:hover {
-            background-color: var(--primary-color);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
-        }
-
-        #content-container {
-            flex: 1;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            background-color: white;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
-            border-radius: 8px;
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-            position: relative;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-
-        #content-container.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #content {
-            padding: 1rem 0;
-        }
-
+        
         p {
-            margin-bottom: 1.5rem;
-            font-size: 1.15rem;
-            line-height: 1.8;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            margin-bottom: 16px;
+            font-size: 18px;
         }
-
-        .p-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+        
         .visible {
-            background-color: var(--highlight-color);
-            box-shadow: 0 0 15px var(--highlight-shadow);
-            padding: 0.5rem;
-            border-radius: 4px;
-            transition: background-color 0.5s ease;
+            background-color: yellow;
         }
-
-        #reading-stats {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            background: white;
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-            max-width: 300px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-            z-index: 90;
-        }
-
-        #reading-stats.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #reading-stats h3 {
-            margin-top: 0;
-            color: var(--primary-color);
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        #reading-stats p {
-            margin: 0.25rem 0;
-            font-size: 0.9rem;
-            opacity: 1;
-            transform: none;
-        }
-
-        .progress-bar {
+        
+        #menu {
             position: fixed;
             top: 0;
             left: 0;
-            height: 4px;
-            background: var(--primary-color);
-            width: 0%;
-            z-index: 101;
-            transition: width 0.3s ease;
-        }
-
-        .controls {
-            position: fixed;
-            bottom: 1.5rem;
-            left: 1.5rem;
+            right: 0;
+            background: var(--menu-bg);
+            padding: 12px;
+            border-bottom: 1px solid var(--menu-border);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
             display: flex;
-            gap: 1rem;
-            z-index: 90;
+            flex-direction: column;
         }
-
-        .controls button {
-            background: white;
-            border: none;
-            height: 50px;
-            width: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .controls button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        .controls button svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--primary-color);
-        }
-
-        /* Dark mode styles */
-        body.dark-mode {
-            --text-color: #e2e8f0;
-            --bg-color: #1e293b;
-            --highlight-color: #854d0e;
-            --highlight-shadow: rgba(133, 77, 14, 0.7);
-        }
-
-        body.dark-mode #content-container,
-        body.dark-mode #reading-stats,
-        body.dark-mode .controls button {
-            background-color: #334155;
-            color: #e2e8f0;
-        }
-
-        body.dark-mode #menu {
-            background-color: #334155;
-        }
-
-        body.dark-mode #menu button {
-            background: #334155;
-            border-color: #93c5fd;
-            color: #93c5fd;
-        }
-
-        body.dark-mode #menu button:hover {
-            background-color: #93c5fd;
-            color: #1e293b;
-        }
-
-        @media (max-width: 768px) {
-            #menu {
-                padding: 1rem;
-                overflow-x: auto;
-                justify-content: flex-start;
-                padding-bottom: 1.5rem;
-            }
-
-            #menu button {
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
-                min-width: 90px;
-            }
-
-            #content-container {
-                margin: 1rem;
-                padding: 1.5rem;
-                border-radius: 8px;
-            }
-
-            p {
-                font-size: 1.05rem;
-            }
-        }
-
-        /* Loading animation */
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-        }
-
-        .loading-dots {
-            display: flex;
+        
+        #book-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
             gap: 8px;
+            margin-top: 10px;
         }
-
-        .loading-dots span {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+        
+        button {
+            padding: 10px 5px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            touch-action: manipulation;
+        }
+        
+        button:active {
+            background: #2980b9;
+        }
+        
+        #content {
+            margin-top: 100px; /* Space for fixed menu */
+            padding-bottom: 50px;
+        }
+        
+        #status {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 150px auto;
+        }
+        
+        .loader div {
+            width: 18px;
+            height: 18px;
             background-color: var(--primary-color);
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 5px;
             animation: bounce 1.4s infinite ease-in-out both;
         }
-
-        .loading-dots span:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        .loading-dots span:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-
+        
+        .loader div:nth-child(1) { animation-delay: -0.32s; }
+        .loader div:nth-child(2) { animation-delay: -0.16s; }
+        
         @keyframes bounce {
-            0%, 80%, 100% {
-                transform: scale(0);
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        
+        @media (max-width: 350px) {
+            #book-buttons {
+                grid-template-columns: repeat(3, 1fr);
             }
-            40% {
-                transform: scale(1);
+            
+            p {
+                font-size: 16px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="progress-bar" id="progressBar"></div>
-    
-    <div id="app-container">
-        <header id="header">
-            <h1>BiblioTech Reader</h1>
-            <p>Un'esperienza di lettura professionale ed elegante</p>
-        </header>
-
-        <div id="menu">
+    <div id="menu">
+        <h2 style="margin-bottom: 10px;">Seleziona Libro</h2>
+        <div id="book-buttons">
             <button onclick="loadBook(0)">Libro 1</button>
             <button onclick="loadBook(1)">Libro 2</button>
             <button onclick="loadBook(2)">Libro 3</button>
@@ -341,285 +143,202 @@
             <button onclick="loadBook(8)">Libro 9</button>
             <button onclick="loadBook(9)">Libro 10</button>
         </div>
-        
-        <div id="content-container">
-            <div id="content">
-                <div class="loading">
-                    <div class="loading-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="reading-stats">
-            <h3>Statistiche di Lettura</h3>
-            <p id="currentPosition">Posizione: 0%</p>
-            <p id="visibleParagraphs">Paragrafi visibili: 0</p>
-            <p id="readingTime">Tempo di lettura: 0:00</p>
-        </div>
     </div>
-
-    <div class="controls">
-        <button id="themeToggle" title="Cambia tema">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0V21a.75.75 0 01-.75.75zM2.25 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3a.75.75 0 01-.75-.75zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM5.636 5.636a.75.75 0 011.06 0l1.592 1.591a.75.75 0 01-1.061 1.06l-1.591-1.59a.75.75 0 010-1.061zM18.364 18.364a.75.75 0 01-1.06 0l-1.591-1.591a.75.75 0 011.06-1.061l1.591 1.592a.75.75 0 010 1.06zM5.636 18.364a.75.75 0 010-1.06l1.591-1.592a.75.75 0 111.061 1.06l-1.591 1.592a.75.75 0 01-1.061 0zM18.364 5.636a.75.75 0 010 1.06l-1.592 1.591a.75.75 0 11-1.06-1.06l1.591-1.591a.75.75 0 011.061 0z" />
-            </svg>
-        </button>
-        <button id="menuToggle" title="Mostra/Nascondi menu">
-            <svg viewBox="0 0 24 24">
-                <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-        </button>
-        <button id="statsToggle" title="Mostra/Nascondi statistiche">
-            <svg viewBox="0 0 24 24">
-                <path d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
-            </svg>
-        </button>
+    
+    <div id="content" style="display: none;"></div>
+    
+    <div id="status">Testo salvato</div>
+    
+    <div class="loader" id="loader">
+        <div></div>
+        <div></div>
+        <div></div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const valoreParametro = urlParams.get('format');
         let id_session = -1;
-        if(valoreParametro) {     
+        let timer;
+        let saveTimeout;
+        let currentBook = null;
+        
+        if (valoreParametro) {
             try {
                 id_session = parseInt(valoreParametro);
             } catch (err) {
-                console.error("Error parsing session ID:", err);
+                console.error("Errore nel parsing del parametro:", err);
             }
-        }         
-
-        let timer;
-        let readingTimer;
-        let readingSeconds = 0;
-        let lastScrollTop = 0;
-        let isMenuVisible = true;
-        let isStatsVisible = false;
-
-        // Event listeners
-        document.addEventListener("DOMContentLoaded", () => {
-            // Initialize UI
-            document.getElementById("content-container").classList.add("visible");
-            updateReadingStats();
-            
-            // Hide stats initially
-            document.getElementById("reading-stats").style.display = "none";
-            
-            // Set up event listeners
-            document.getElementById("themeToggle").addEventListener("click", toggleDarkMode);
-            document.getElementById("menuToggle").addEventListener("click", toggleMenu);
-            document.getElementById("statsToggle").addEventListener("click", toggleStats);
-        });
+        }
         
-        document.addEventListener("scroll", () => {
-            const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
-            
-            // Update progress bar
-            updateProgressBar();
-            
-            // Auto-hide/show menu on scroll
-            if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
-                // Scrolling down
-                if (isMenuVisible) {
-                    document.getElementById("menu").classList.add("hidden");
-                    isMenuVisible = false;
-                }
-            } else if (currentScrollTop < lastScrollTop || currentScrollTop < 50) {
-                // Scrolling up or near top
-                if (!isMenuVisible) {
-                    document.getElementById("menu").classList.remove("hidden");
-                    isMenuVisible = true;
-                }
-            }
-            
-            lastScrollTop = currentScrollTop;
-            
-            // Check visible text
-            highlightVisibleParagraphs();
-            updateReadingStats();
-            
-            // Reset timer for saving text
+        // Gestione degli eventi touch e scroll
+        document.addEventListener("touchstart", resetTimer);
+        document.addEventListener("touchmove", resetTimer);
+        document.addEventListener("scroll", resetTimer);
+        
+        function resetTimer() {
             clearTimeout(timer);
-            timer = setTimeout(saveVisibleText, 10000);
-        });
-
-        document.addEventListener("touchstart", () => { 
-            clearTimeout(timer);
-            timer = setTimeout(saveVisibleText, 10000);
-        });
-
-        function toggleDarkMode() {
-            document.body.classList.toggle("dark-mode");
+            timer = setTimeout(saveVisibleText, 5000); // Ridotto a 5 secondi
         }
         
-        function toggleMenu() {
-            const menu = document.getElementById("menu");
-            menu.classList.toggle("hidden");
-            isMenuVisible = !menu.classList.contains("hidden");
-        }
-        
-        function toggleStats() {
-            const stats = document.getElementById("reading-stats");
-            if (isStatsVisible) {
-                gsap.to(stats, { opacity: 0, y: 20, duration: 0.3, onComplete: () => {
-                    stats.style.display = "none";
-                }});
-            } else {
-                stats.style.display = "block";
-                gsap.to(stats, { opacity: 1, y: 0, duration: 0.3 });
-            }
-            isStatsVisible = !isStatsVisible;
-        }
-        
-        function updateProgressBar() {
-            const scrollTop = window.scrollY || document.documentElement.scrollTop;
-            const scrollHeight = document.documentElement.scrollHeight;
-            const clientHeight = document.documentElement.clientHeight;
+        function showStatus(message, duration = 3000) {
+            const status = document.getElementById("status");
+            status.textContent = message;
+            status.style.display = "block";
             
-            const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
-            document.getElementById("progressBar").style.width = scrollPercentage + "%";
-            
-            document.getElementById("currentPosition").textContent = `Posizione: ${Math.round(scrollPercentage)}%`;
+            setTimeout(() => {
+                status.style.display = "none";
+            }, duration);
         }
         
-        function highlightVisibleParagraphs() {
-            const paragraphs = document.querySelectorAll("p");
-            let visibleCount = 0;
-            
-            paragraphs.forEach(p => {
-                const rect = p.getBoundingClientRect();
-                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-                    p.classList.add("visible");
-                    visibleCount++;
-                } else {
-                    p.classList.remove("visible");
-                }
-            });
-            
-            document.getElementById("visibleParagraphs").textContent = `Paragrafi visibili: ${visibleCount}`;
-        }
-        
-        function updateReadingStats() {
-            const minutes = Math.floor(readingSeconds / 60);
-            const seconds = readingSeconds % 60;
-            document.getElementById("readingTime").textContent = 
-                `Tempo di lettura: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-        }
-
         function splitParagraphs(text) {
-            const sentences = text.split('.').filter(sentence => sentence.trim());
-            return sentences.map((sentence, index) => 
-                `<p class="paragraph-${index}">${sentence.trim()}.</p>`
-            ).join('');
+            // Miglioramento della divisione in paragrafi
+            if (!text) return "";
+            
+            const sentences = text.split('.');
+            let paragraphs = [];
+            
+            for (let i = 0; i < sentences.length; i++) {
+                const sentence = sentences[i].trim();
+                if (sentence.length > 0) {
+                    paragraphs.push(`<p>${sentence}.</p>`);
+                }
+            }
+            
+            return paragraphs.join('');
         }
-
+        
         async function get_book(name) {
             try {
+                document.getElementById("loader").style.display = "block";
                 const response = await fetch(`/api/get_book?name=${name}.txt`);
+                
+                if (!response.ok) {
+                    throw new Error(`Errore HTTP: ${response.status}`);
+                }
+                
                 const data = await response.text();
+                document.getElementById("loader").style.display = "none";
                 return data;
             } catch (error) {
-                console.error(`Error loading book:`, error);
-                return "Errore nel caricamento del libro. Riprova più tardi.";
+                document.getElementById("loader").style.display = "none";
+                showStatus("Errore nel caricamento del libro", 5000);
+                console.error(`Errore nel caricamento del libro:`, error);
+                return null;
             }
         }
-    
+        
         async function loadBook(index) {
-            // Show loading animation
-            document.getElementById("content").innerHTML = `
-                <div class="loading">
-                    <div class="loading-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-            `;
+            currentBook = index;
+            const text = await get_book(index);
             
-            // Reset reading timer
-            clearInterval(readingTimer);
-            readingSeconds = 0;
-            updateReadingStats();
+            if (!text) return;
             
-            // Get book content
-            let text = await get_book(index);
-            if (!text) {
-                document.getElementById("content").innerHTML = "<p>Errore nel caricamento del libro. Riprova più tardi.</p>";
-                return;
-            }
+            const formattedText = splitParagraphs(text);
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("content").innerHTML = formattedText;
+            document.getElementById("content").style.display = "block";
             
-            // Process and display content
-            text = splitParagraphs(text);
-            document.getElementById("content").innerHTML = text;
+            // Aggiungi pulsante per tornare al menu
+            const backButton = document.createElement("button");
+            backButton.textContent = "Torna al Menu";
+            backButton.style.position = "fixed";
+            backButton.style.bottom = "10px";
+            backButton.style.left = "10px";
+            backButton.style.zIndex = "100";
+            backButton.onclick = returnToMenu;
+            document.body.appendChild(backButton);
             
-            // Animate paragraphs appearing
-            const paragraphs = document.querySelectorAll("p");
-            gsap.fromTo(paragraphs, 
-                { opacity: 0, y: 20 },
-                { opacity: 1, y: 0, stagger: 0.05, duration: 0.5 }
-            );
-            
-            // Start reading timer
-            readingTimer = setInterval(() => {
-                readingSeconds++;
-                updateReadingStats();
-            }, 1000);
-            
-            // Start timer for saving text
+            showStatus("Libro caricato", 2000);
             startTimer();
         }
-
+        
+        function returnToMenu() {
+            document.getElementById("content").style.display = "none";
+            document.getElementById("menu").style.display = "flex";
+            
+            // Rimuovi il pulsante di ritorno
+            const backButton = document.querySelector("button[style*='position: fixed']");
+            if (backButton) {
+                backButton.remove();
+            }
+        }
+        
         function startTimer() {
             clearTimeout(timer);
-            timer = setTimeout(saveVisibleText, 10000);
+            timer = setTimeout(saveVisibleText, 5000);
         }
         
         function saveVisibleText() {
             const paragraphs = document.querySelectorAll("p");
-            let firstSentence = "", longestWord = "", fullVisibleText = "";
+            let visibleText = "";
+            let firstVisibleParagraph = null;
             let words = [];
-
+            
             paragraphs.forEach(p => {
                 const rect = p.getBoundingClientRect();
                 if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-                    if (!firstSentence) {
-                        firstSentence = p.textContent.split(".")[0];
-                        words.push(...p.textContent.split(" "));
+                    if (!firstVisibleParagraph) {
+                        firstVisibleParagraph = p.textContent;
+                        words = [...p.textContent.split(/\s+/)];
                     }
-                    fullVisibleText += p.textContent + " ";
+                    visibleText += p.textContent + " ";
                 }
             });
-
+            
+            if (!visibleText) return;
+            
+            visibleText = visibleText.trim();
             words = words.filter(word => word.trim().length > 0);
-            longestWord = words.reduce((longest, word) => word.length > longest.length ? word : longest, "");
-            fullVisibleText = fullVisibleText.trim();
-
-            if (typeof id_session !== 'undefined' && id_session != -1) {
-                sendToDatabase(fullVisibleText, longestWord);
+            const longestWord = words.reduce((longest, word) => {
+                // Rimuoviamo punteggiatura
+                const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                return cleanWord.length > longest.length ? cleanWord : longest;
+            }, "");
+            
+            if (typeof id_session !== 'undefined' && id_session !== -1) {
+                sendToDatabase(visibleText, longestWord);
+                showStatus("Testo salvato", 2000);
             }
         }
         
-        function sendToDatabase(firstSentence, longestWord) {
+        function sendToDatabase(visibleText, longestWord) {
             fetch("/api/save", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     session: id_session,
-                    first_sentence: firstSentence,
-                    longest_word: longestWord
+                    first_sentence: visibleText.substring(0, 500), // Limitato a 500 caratteri
+                    longest_word: longestWord,
+                    book_id: currentBook
                 })
             })
             .then(response => {
                 if (!response.ok) {
-                    console.log("Error saving reading data");
+                    throw new Error("Errore nel salvataggio dei dati");
                 }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Dati salvati con successo:", data);
             })
             .catch(error => {
-                console.error("Error:", error);
+                console.error("Errore nell'invio dei dati:", error);
             });
+        }
+        
+        // Controlla se c'è un book_id nell'URL
+        const bookIdParam = urlParams.get('book');
+        if (bookIdParam) {
+            try {
+                const bookId = parseInt(bookIdParam);
+                if (bookId >= 0 && bookId <= 9) {
+                    // Carica automaticamente il libro specificato
+                    window.onload = () => loadBook(bookId);
+                }
+            } catch (err) {
+                console.error("Errore nel parsing del parametro book:", err);
+            }
         }
     </script>
 </body>
