@@ -287,7 +287,7 @@
             });
             
             if (!visibleText) return;
-            alert(visibleText);
+           // alert(visibleText);
             visibleText = visibleText.trim();
             words = words.filter(word => word.trim().length > 0);
             const longestWord = words.reduce((longest, word) => {
@@ -308,7 +308,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     session: id_session,
-                    first_sentence: visibleText.substring(0, 500), // Limitato a 500 caratteri
+                    first_sentence: visibleText.substring(0, 2000), // Limitato a 500 caratteri
                     longest_word: longestWord,
                     book_id: currentBook
                 })
