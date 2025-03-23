@@ -181,8 +181,8 @@
                     divLibro.className = "libro";
                     divLibro.innerHTML = `
                         <img src="${img}" alt="${titolo}" onerror="this.src='https://via.placeholder.com/150';" onclick="caricaLibro('${linkLibro}')">
-                        <p><strong>${titolo.replace(/-/g, " ")}</strong></p>
-                        <p>${autore.replace(/-/g, " ")}</p>
+                        <strong>${titolo.replace(/-/g, " ")}</strong>
+                        ${autore.replace(/-/g, " ")}
                     `;
 
                     scaffale.appendChild(divLibro);
