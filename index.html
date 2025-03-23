@@ -42,12 +42,21 @@
                 console.error("Errore nel parsing del parametro:", err);
             }
         }
-        
+
+const container = document.getElementById("contenuto-libro");
+
+if (container) {
+    container.addEventListener("touchstart", resetTimer);
+    container.addEventListener("touchmove", resetTimer);
+    container.addEventListener("scroll", resetTimer);
+}
+
+     
         // Gestione degli eventi touch e scroll
-        document.addEventListener("touchstart", resetTimer);
+     /*   document.addEventListener("touchstart", resetTimer);
         document.addEventListener("touchmove", resetTimer);
         document.addEventListener("scroll", resetTimer);
-        
+       */ 
         function resetTimer() {
     console.log("timer reset");
 
@@ -79,25 +88,25 @@
 
 
        function saveVisibleText() {
-    const container = document.getElementById("contenuto-libro");
-    if (!container) return;
-
-    const containerRect = container.getBoundingClientRect();
-    const paragraphs = container.querySelectorAll("p");
-    let visibleText = "";
-    let firstVisibleParagraph = null;
-    let words = [];
-
-    paragraphs.forEach(p => {
-        const rect = p.getBoundingClientRect();
-        if (rect.bottom > containerRect.top && rect.top < containerRect.bottom) {
-            if (!firstVisibleParagraph) {
-                firstVisibleParagraph = p.textContent;
-                words = [...p.textContent.split(/\s+/)];
-            }
-            visibleText += p.textContent + " ";
-        }
-    });
+         const container = document.getElementById("contenuto-libro");
+         if (!container) return;
+     
+         const containerRect = container.getBoundingClientRect();
+         const paragraphs = container.querySelectorAll("p");
+         let visibleText = "";
+         let firstVisibleParagraph = null;
+         let words = [];
+     
+         paragraphs.forEach(p => {
+             const rect = p.getBoundingClientRect();
+             if (rect.bottom > containerRect.top && rect.top < containerRect.bottom) {
+                 if (!firstVisibleParagraph) {
+                     firstVisibleParagraph = p.textContent;
+                     words = [...p.textContent.split(/\s+/)];
+                 }
+                 visibleText += p.textContent + " ";
+             }
+         });
 
     if (!visibleText) return;
     visibleText = visibleText.trim();
