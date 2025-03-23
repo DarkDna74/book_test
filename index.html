@@ -53,7 +53,10 @@
             timer = setTimeout(saveVisibleText, 5000); // Ridotto a 5 secondi
         }
 
-
+   function startTimer() {
+            clearTimeout(timer);
+            timer = setTimeout(saveVisibleText, 5000);
+        }
 
         function splitParagraphs(text) {
             // Miglioramento della divisione in paragrafi
