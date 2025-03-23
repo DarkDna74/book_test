@@ -49,7 +49,9 @@
         document.addEventListener("scroll", resetTimer);
         
         function resetTimer() {
-            clearTimeout(timer);
+    console.log("timer reset");
+
+         clearTimeout(timer);
             timer = setTimeout(saveVisibleText, 5000); // Ridotto a 5 secondi
         }
 
