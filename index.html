@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Reader | Standard eBooks</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-light: #f8f9fa;
+            --secondary-light: #e9ecef;
+            --text-light: #212529;
+            --accent-light: #4361ee;
+            --border-light: #dee2e6;
+            
+            --primary-dark: #121212;
+            --secondary-dark: #1e1e1e;
+            --text-dark: #e9ecef;
+            --accent-dark: #4cc9f0;
+            --border-dark: #343a40;
+            
+            --animation-speed: 0.3s;
+            
+            --primary: var(--primary-light);
+            --secondary: var(--secondary-light);
+            --text: var(--text-light);
+            --accent: var(--accent-light);
+            --border: var(--border-light);
+        }
+        
+        .dark-mode {
+            --primary: var(--primary-dark);
+            --secondary: var(--secondary-dark);
+            --text: var(--text-dark);
+            --accent: var(--accent-dark);
+            --border: var(--border-dark);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color var(--animation-speed), color var(--animation-speed), border-color var(--animation-speed);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--primary);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--secondary);
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        main {
+            padding: 5.5rem 1rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .search-container {
+            background-color: var(--secondary);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .search-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+        
+        .search-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--primary);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .search-input input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .search-btn {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .reset-btn {
+            background-color: var(--border);
+            color: var(--text);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .bookshelf {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .book {
+            background-color: var(--secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .book:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .book img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .book-info {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .book-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .book-author {
+            font-size: 0.8rem;
+            color: var(--text);
+            opacity: 0.8;
+        }
+        
+        .next-page {
+            display: none;
+            margin: 2rem auto;
+            padding: 12px 24px;
+            background-color: var(--secondary);
+            color: var(--accent);
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            max-width: 200px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .next-page:hover {
+            transform: translateY(-2px);
+        }
+        
+        .reader-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            z-index: 1000;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .reader-header {
+            position: sticky;
+            top: 0;
+            background-color: var(--primary);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .reader-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            max-width: 70%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .back-to-shelf {
+            background-color: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .reader-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+            padding: 0 1rem 5rem;
+            width: 100%;
+        }
+        
+        /* Dark mode specific styles */
+        .dark-mode .book {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dark-mode .book:hover {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Loading spinner */
+        .loader {
+            display: none;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Entrance animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-container, .book {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .book {
+            animation-delay: calc(0.05s * var(--i, 0));
+        }
+        
+        /* Mobile specific styles */
+        @media (max-width: 768px) {
+            .bookshelf {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 15px;
+            }
+            
+            .reader-content {
+                font-size: 1rem;
+                line-height: 1.6;
+            }
+            
+            .search-input {
+                flex-direction: column;
+            }
+            
+            .search-buttons {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .book-title {
+                font-size: 0.8rem;
+            }
+            
+            .book-author {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-book"></i> Lumina Reader
+        </div>
+        <button class="theme-toggle" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
+    
+    <main>
+        <div class="search-container">
+            <div class="search-input">
+                <input type="text" id="query" placeholder="Search by title or author...">
+            </div>
+            <div class="search-buttons">
+                <button class="search-btn" onclick="searchEbooks()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <button class="reset-btn" onclick="resetSearch()">
+                    <i class="fas fa-times"></i> Reset
+                </button>
+            </div>
+        </div>
+        
+        <div class="loader" id="loader"></div>
+        <div class="bookshelf" id="bookshelf"></div>
+        <div class="next-page" id="next-page" onclick="loadNextPage()">Load More Books</div>
+    </main>
+    
+    <div class="reader-view" id="reader-view">
+        <div class="reader-header">
+            <div class="reader-title" id="reader-title">Book Title</div>
+            <button class="back-to-shelf" onclick="closeReaderView()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+        <div class="reader-content" id="reader-content"></div>
+    </div>
+    
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionParam = urlParams.get('format');
+        let id_session = -1;
+        let timer;
+        let saveTimeout;
+        let currentBook = null;
+        
+        if (sessionParam) {
+            try {
+                id_session = parseInt(sessionParam);
+            } catch (err) {
+                console.error("Error parsing parameter:", err);
+            }
+        }
+        
+        const readerContent = document.getElementById("reader-content");
+        
+        if (readerContent) {
+            readerContent.addEventListener("touchstart", resetTimer);
+            readerContent.addEventListener("touchmove", resetTimer);
+            readerContent.addEventListener("scroll", resetTimer);
+        }
+        
+        function resetTimer() {
+            console.log("timer reset");
+            clearTimeout(timer);
+            timer = setTimeout(saveVisibleText, 5000);
+        }
+        
+        function startTimer() {
+            clearTimeout(timer);
+            timer = setTimeout(saveVisibleText, 5000);
+        }
+        
+        // This function preserves the original <p> tags while optimizing for full-screen reading
+        function preserveOriginalFormat(htmlContent) {
+            if (!htmlContent) return "";
+            
+            // Create a temporary element to work with the HTML content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            
+            // Find and remove any unnecessary elements for clean reading
+            const elementsToRemove = tempDiv.querySelectorAll('nav, header, footer, aside, .metadata, script, style');
+            elementsToRemove.forEach(el => el.remove());
+            
+            // Find the main content - typically the first big text block
+            let mainContent = tempDiv.querySelector('main') || tempDiv.querySelector('article') || tempDiv;
+            
+            // Process and return the HTML content
+            return mainContent.innerHTML;
+        }
+        
+        function saveVisibleText() {
+            const container = document.getElementById("reader-content");
+            if (!container) return;
+            
+            const containerRect = container.getBoundingClientRect();
+            const paragraphs = container.querySelectorAll("p");
+            let visibleText = "";
+            let firstVisibleParagraph = null;
+            let words = [];
+            
+            paragraphs.forEach(p => {
+                const rect = p.getBoundingClientRect();
+                if (rect.bottom > containerRect.top && rect.top < containerRect.bottom) {
+                    if (!firstVisibleParagraph) {
+                        firstVisibleParagraph = p.textContent;
+                        words = [...p.textContent.split(/\s+/)];
+                    }
+                    visibleText += p.textContent + " ";
+                }
+            });
+            
+            if (!visibleText) return;
+            visibleText = visibleText.trim();
+            words = words.filter(word => word.trim().length > 0);
+            
+            const longestWord = words.reduce((longest, word) => {
+                const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                return cleanWord.length > longest.length ? cleanWord : longest;
+            }, "");
+            
+            if (typeof id_session !== 'undefined' && id_session !== -1) {
+                sendToDatabase(visibleText, longestWord);
+            }
+        }
+        
+        function sendToDatabase(visibleText, longestWord) {
+            fetch("/api/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session: id_session,
+                    first_sentence: visibleText.substring(0, 2000),
+                    longest_word: longestWord,
+                    book_id: currentBook
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error saving data");
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Data saved successfully:", data);
+            })
+            .catch(error => {
+                console.error("Error sending data:", error);
+            });
+        }
+        
+        let nextPageUrl = null;
+        
+        async function searchEbooks(url = null) {
+            const query = document.getElementById("query").value;
+            if (!url && !query) return alert("Please enter a search term");
+            
+            const searchUrl = url || `https://standardebooks.org/ebooks?query=${encodeURIComponent(query)}`;
+            
+            // Show loader
+            document.getElementById("loader").style.display = "block";
+            
+            try {
+                const response = await fetch(searchUrl);
+                const text = await response.text();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+                
+                // Find all <li> with typeof="schema:Book"
+                const items = [...doc.querySelectorAll('li[typeof="schema:Book"]')];
+                
+                // Build the bookshelf
+                const bookshelf = document.getElementById("bookshelf");
+                if (!url) bookshelf.innerHTML = "";  // Empty bookshelf only on first search
+                
+                items.forEach((item, index) => {
+                    const about = item.getAttribute("about");
+                    const parts = about.split("/").filter(Boolean);
+                    const author = parts[1];
+                    const title = parts[2];
+                    
+                    // Find image path
+                    const imgTag = item.querySelector("img");
+                    const pathImage = imgTag ? imgTag.getAttribute("src") : "/images/covers/default-cover.jpg";
+                    
+                    // Build absolute image URL
+                    const img = `https://standardebooks.org${pathImage}`;
+                    
+                    const bookLink = `https://standardebooks.org${about}/text/single-page`;
+                    
+                    const bookElement = document.createElement("div");
+                    bookElement.className = "book";
+                    bookElement.style.setProperty('--i', index);
+                    bookElement.innerHTML = `
+                        <img src="${img}" alt="${title}" onerror="this.src='https://via.placeholder.com/150x225?text=No+Cover';">
+                        <div class="book-info">
+                            <div class="book-title">${title.replace(/-/g, " ")}</div>
+                            <div class="book-author">${author.replace(/-/g, " ")}</div>
+                        </div>
+                    `;
+                    
+                    bookElement.addEventListener('click', () => loadBook(bookLink, title.replace(/-/g, " ")));
+                    
+                    bookshelf.appendChild(bookElement);
+                });
+                
+                // Find "Next" link for pagination
+                const nextLink = doc.querySelector('a[rel="next"]');
+                if (nextLink) {
+                    nextPageUrl = `https://standardebooks.org${nextLink.getAttribute("href")}`;
+                    document.getElementById("next-page").style.display = "block";
+                } else {
+                    nextPageUrl = null;
+                    document.getElementById("next-page").style.display = "none";
+                }
+                
+            } catch (error) {
+                console.error("Search error:", error);
+                alert("Unable to perform search.");
+            } finally {
+                // Hide loader
+                document.getElementById("loader").style.display = "none";
+            }
+        }
+        
+        async function loadNextPage() {
+            if (nextPageUrl) {
+                searchEbooks(nextPageUrl);
+            }
+        }
+        
+        function resetSearch() {
+            document.getElementById("query").value = "";
+            document.getElementById("bookshelf").innerHTML = "";
+            document.getElementById("next-page").style.display = "none";
+        }
+        
+        async function loadBook(url, title) {
+            // Show loader
+            document.getElementById("loader").style.display = "block";
+            
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+                
+                const content = doc.querySelector("body")?.innerHTML || "Content not available";
+                
+                // Update reader view
+                document.getElementById("reader-title").textContent = title;
+                document.getElementById("reader-content").innerHTML = preserveOriginalFormat(content);
+                
+                // Apply additional styles to ensure text fills the screen
+                const readerContentElement = document.getElementById("reader-content");
+                
+                // Show reader view
+                document.getElementById("reader-view").style.display = "block";
+                
+                // Ensure the text takes the full width and is properly formatted
+                adjustTextStyles();
+                
+                startTimer();
+                
+                // Extract book ID from URL for tracking
+                const urlParts = url.split('/');
+                currentBook = urlParts[urlParts.length - 3]; // Assuming format /author/title/text/single-page
+                
+            } catch (error) {
+                console.error("Error loading book:", error);
+                alert("Unable to load book.");
+            } finally {
+                // Hide loader
+                document.getElementById("loader").style.display = "none";
+            }
+        }
+        
+        function adjustTextStyles() {
+            // Get all paragraphs
+            const paragraphs = document.querySelectorAll("#reader-content p");
+            
+            // Apply styles to each paragraph for better readability
+            paragraphs.forEach(p => {
+                p.style.margin = "0.75em 0";
+                p.style.textAlign = "left";
+            });
+        }
+        
+        function closeReaderView() {
+            document.getElementById("reader-view").style.display = "none";
+        }
+        
+        // Handle search when Enter key is pressed
+        document.getElementById("query").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                searchEbooks();
+            }
+        });
+        
+        // Adjust reader view to be truly full screen
+        window.addEventListener('resize', function() {
+            if (document.getElementById("reader-view").style.display === "block") {
+                adjustTextStyles();
+            }
+        });
+    </script>
+</body>
+</html>
