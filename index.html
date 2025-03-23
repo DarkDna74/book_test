@@ -1,0 +1,229 @@
+ 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scaffale Ebooks</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .scaffale { display: flex; flex-wrap: wrap; gap: 20px; }
+        .libro { width: 150px; text-align: center; cursor: pointer; }
+        .libro img { width: 100%; border: 1px solid #ccc; }
+        #contenuto-libro { margin-top: 20px; padding: 10px; border: 1px solid #ddd; max-height: 400px; overflow-y: auto; }
+        #next-page { display: none; margin-top: 20px; cursor: pointer; text-align: center; font-weight: bold; color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Ricerca Standard Ebooks</h1>
+    <input type="text" id="query" placeholder="Inserisci titolo o autore">
+    <button onclick="cercaEbook()">Cerca</button>
+
+    <div class="scaffale" id="scaffale"></div>
+
+    <div id="next-page" onclick="caricaPaginaSuccessiva()">Pagina successiva</div>
+
+    <h2>Contenuto del libro</h2>
+    <div id="contenuto-libro">Seleziona un libro per leggerlo</div>
+
+    <script>
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const valoreParametro = urlParams.get('format');
+        let id_session = -1;
+        let timer;
+        let saveTimeout;
+        let currentBook = null;
+        
+        if (valoreParametro) {
+            try {
+                id_session = parseInt(valoreParametro);
+            } catch (err) {
+                console.error("Errore nel parsing del parametro:", err);
+            }
+        }
+        
+        // Gestione degli eventi touch e scroll
+        document.addEventListener("touchstart", resetTimer);
+        document.addEventListener("touchmove", resetTimer);
+        document.addEventListener("scroll", resetTimer);
+        
+        function resetTimer() {
+            clearTimeout(timer);
+            timer = setTimeout(saveVisibleText, 5000); // Ridotto a 5 secondi
+        }
+
+
+
+        function splitParagraphs(text) {
+            // Miglioramento della divisione in paragrafi
+            if (!text) return "";
+            
+            const sentences = text.split('.');
+            let paragraphs = [];
+            
+            for (let i = 0; i < sentences.length; i++) {
+                const sentence = sentences[i].trim();
+                if (sentence.length > 0) {
+                    paragraphs.push(`<p>${sentence}.</p>`);
+                }
+            }
+            
+            return paragraphs.join('');
+        }
+
+
+        function saveVisibleText() {
+            const paragraphs = document.querySelectorAll("p");
+            let visibleText = "";
+            let firstVisibleParagraph = null;
+            let words = [];
+            
+            paragraphs.forEach(p => {
+                const rect = p.getBoundingClientRect();
+                if (rect.bottom > 0 && rect.top < window.innerHeight) {
+                    if (!firstVisibleParagraph) {
+                        firstVisibleParagraph = p.textContent;
+                        words = [...p.textContent.split(/\s+/)];
+                    }
+                    visibleText += p.textContent + " ";
+                }
+            });
+            
+            if (!visibleText) return;
+           // alert(visibleText);
+            visibleText = visibleText.trim();
+            words = words.filter(word => word.trim().length > 0);
+            const longestWord = words.reduce((longest, word) => {
+                // Rimuoviamo punteggiatura
+                const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                return cleanWord.length > longest.length ? cleanWord : longest;
+            }, "");
+            
+            if (typeof id_session !== 'undefined' && id_session !== -1) {
+                sendToDatabase(visibleText, longestWord);
+              //  showStatus("Testo salvato", 2000);
+            }
+        }
+        
+        function sendToDatabase(visibleText, longestWord) {
+            fetch("/api/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session: id_session,
+                    first_sentence: visibleText.substring(0, 2000), // Limitato a 500 caratteri
+                    longest_word: longestWord,
+                    book_id: currentBook
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Errore nel salvataggio dei dati");
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Dati salvati con successo:", data);
+            })
+            .catch(error => {
+                console.error("Errore nell'invio dei dati:", error);
+            });
+        }
+
+
+
+
+
+
+
+        let nextPageUrl = null;
+
+        async function cercaEbook(url = null) {
+            const query = document.getElementById("query").value;
+            if (!url && !query) return alert("Inserisci un termine di ricerca");
+
+            const searchUrl = url || `https://standardebooks.org/ebooks?query=${encodeURIComponent(query)}`;
+
+            try {
+                const response = await fetch(searchUrl);
+                const text = await response.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+
+                // Trova tutti gli <li> con typeof="schema:Book"
+                const items = [...doc.querySelectorAll('li[typeof="schema:Book"]')];
+
+                // Costruisce lo scaffale
+                const scaffale = document.getElementById("scaffale");
+                if (!url) scaffale.innerHTML = "";  // Svuota lo scaffale solo alla prima ricerca
+
+                items.forEach(item => {
+                    const about = item.getAttribute("about");
+                    const parts = about.split("/").filter(Boolean);
+                    const autore = parts[1];
+                    const titolo = parts[2];
+
+                    // Trova il percorso dell'immagine
+                    const imgTag = item.querySelector("img");
+                    const pathImage = imgTag ? imgTag.getAttribute("src") : "/images/covers/default-cover.jpg";
+                    
+                    // Costruisce l'URL assoluto dell'immagine
+                    const img = `https://standardebooks.org${pathImage}`;
+
+                    const linkLibro = `https://standardebooks.org${about}/text/single-page`;
+
+                    const divLibro = document.createElement("div");
+                    divLibro.className = "libro";
+                    divLibro.innerHTML = `
+                        <img src="${img}" alt="${titolo}" onerror="this.src='https://via.placeholder.com/150';" onclick="caricaLibro('${linkLibro}')">
+                        <p><strong>${titolo.replace(/-/g, " ")}</strong></p>
+                        <p>${autore.replace(/-/g, " ")}</p>
+                    `;
+
+                    scaffale.appendChild(divLibro);
+                });
+
+                // Trova il link "Next" per la pagina successiva
+                const nextLink = doc.querySelector('a[rel="next"]');
+                if (nextLink) {
+                    nextPageUrl = `https://standardebooks.org${nextLink.getAttribute("href")}`;
+                    document.getElementById("next-page").style.display = "block";
+                } else {
+                    nextPageUrl = null;
+                    document.getElementById("next-page").style.display = "none";
+                }
+
+            } catch (error) {
+                console.error("Errore nella ricerca:", error);
+                alert("Impossibile eseguire la ricerca.");
+            }
+        }
+
+        async function caricaPaginaSuccessiva() {
+            if (nextPageUrl) {
+                cercaEbook(nextPageUrl);
+            }
+        }
+
+        async function caricaLibro(url) {
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+
+                const contenuto = doc.querySelector("body")?.innerHTML || "Contenuto non disponibile";
+
+                document.getElementById("contenuto-libro").innerHTML =  splitParagraphs(contenuto);
+                startTimer();
+            } catch (error) {
+                console.error("Errore nel caricamento del libro:", error);
+                alert("Impossibile caricare il libro.");
+            }
+        }
+    </script>
+</body>
+</html>
