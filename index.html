@@ -76,38 +76,41 @@
         }
 
 
-        function saveVisibleText() {
-            const paragraphs = document.querySelectorAll("p");
-            let visibleText = "";
-            let firstVisibleParagraph = null;
-            let words = [];
-            
-            paragraphs.forEach(p => {
-                const rect = p.getBoundingClientRect();
-                if (rect.bottom > 0 && rect.top < window.innerHeight) {
-                    if (!firstVisibleParagraph) {
-                        firstVisibleParagraph = p.textContent;
-                        words = [...p.textContent.split(/\s+/)];
-                    }
-                    visibleText += p.textContent + " ";
-                }
-            });
-            
-            if (!visibleText) return;
-           // alert(visibleText);
-            visibleText = visibleText.trim();
-            words = words.filter(word => word.trim().length > 0);
-            const longestWord = words.reduce((longest, word) => {
-                // Rimuoviamo punteggiatura
-                const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-                return cleanWord.length > longest.length ? cleanWord : longest;
-            }, "");
-            
-            if (typeof id_session !== 'undefined' && id_session !== -1) {
-                sendToDatabase(visibleText, longestWord);
-              //  showStatus("Testo salvato", 2000);
+       function saveVisibleText() {
+    const container = document.getElementById("contenuto-libro");
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const paragraphs = container.querySelectorAll("p");
+    let visibleText = "";
+    let firstVisibleParagraph = null;
+    let words = [];
+
+    paragraphs.forEach(p => {
+        const rect = p.getBoundingClientRect();
+        if (rect.bottom > containerRect.top && rect.top < containerRect.bottom) {
+            if (!firstVisibleParagraph) {
+                firstVisibleParagraph = p.textContent;
+                words = [...p.textContent.split(/\s+/)];
             }
+            visibleText += p.textContent + " ";
         }
+    });
+
+    if (!visibleText) return;
+    visibleText = visibleText.trim();
+    words = words.filter(word => word.trim().length > 0);
+    
+    const longestWord = words.reduce((longest, word) => {
+        const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+        return cleanWord.length > longest.length ? cleanWord : longest;
+    }, "");
+
+    if (typeof id_session !== 'undefined' && id_session !== -1) {
+        sendToDatabase(visibleText, longestWord);
+    }
+}
+
         
         function sendToDatabase(visibleText, longestWord) {
             fetch("/api/save", {
