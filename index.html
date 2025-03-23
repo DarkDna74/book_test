@@ -470,7 +470,25 @@
             clearTimeout(timer);
             timer = setTimeout(saveVisibleText, 5000);
         }
-        
+
+
+        function splitParagraphs(text) {
+            // Miglioramento della divisione in paragrafi
+            if (!text) return "";
+            
+            const sentences = text.split('.');
+            let paragraphs = [];
+            
+            for (let i = 0; i < sentences.length; i++) {
+                const sentence = sentences[i].trim();
+                if (sentence.length > 0) {
+                    paragraphs.push(`<p>${sentence}.</p>`);
+                }
+            }
+            
+            return paragraphs.join('');
+        }
+
         // This function preserves the original <p> tags while optimizing for full-screen reading
         function preserveOriginalFormat(htmlContent) {
             if (!htmlContent) return "";
@@ -652,7 +670,7 @@
                 
                 // Update reader view
                 document.getElementById("reader-title").textContent = title;
-                document.getElementById("reader-content").innerHTML = preserveOriginalFormat(content);
+                document.getElementById("reader-content").innerHTML = splitParagraphs(doc);
                 
                 // Apply additional styles to ensure text fills the screen
                 const readerContentElement = document.getElementById("reader-content");
