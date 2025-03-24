@@ -243,13 +243,18 @@
             border-radius: 3px;
         }
         
-        .theme-toggle {
+        .theme-toggle, .fullscreen-toggle {
             background: none;
             border: none;
             color: var(--text-secondary);
             font-size: 1.2rem;
             cursor: pointer;
             padding: 5px;
+            margin-left: 10px;
+        }
+        
+        .theme-toggle:hover, .fullscreen-toggle:hover {
+            color: var(--accent-light);
         }
         
         #contenuto-libro {
@@ -362,6 +367,48 @@
             margin: 20px 0 10px 0;
             color: var(--accent-light);
         }
+        
+        /* Fullscreen Styles */
+        .fullscreen-mode .header,
+        .fullscreen-mode .search-container,
+        .fullscreen-mode #scaffale-container,
+        .fullscreen-mode #next-page,
+        .fullscreen-mode h2::before {
+            display: none;
+        }
+        
+        .fullscreen-mode .content-section {
+            margin-top: 0;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            padding: 15px;
+            background-color: var(--bg-primary);
+        }
+        
+        .fullscreen-mode #contenuto-libro {
+            max-height: calc(100vh - 80px);
+            height: calc(100vh - 80px);
+            border-radius: 0;
+            box-shadow: none;
+        }
+        
+        .fullscreen-mode .content-header {
+            position: relative;
+            z-index: 1001;
+        }
+        
+        .fullscreen-mode .exit-fullscreen-btn {
+            display: block;
+        }
+        
+        .buttons-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -387,9 +434,14 @@
     <div class="content-section">
         <div class="content-header">
             <h2>Book Content</h2>
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <i class="fas fa-moon"></i>
-            </button>
+            <div class="buttons-container">
+                <button class="fullscreen-toggle" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
         </div>
         <div id="contenuto-libro">
             <div class="empty-state">
@@ -402,6 +454,7 @@
     <script>
         let nextPageUrl = null;
         let isLightTheme = false;
+        let isFullscreen = false;
         
 
   // Get URL parameters
@@ -517,8 +570,59 @@
             });
         }
 
+        function toggleFullscreen() {
+            const body = document.body;
+            const fullscreenToggle = document.querySelector('.fullscreen-toggle i');
+            
+            body.classList.toggle('fullscreen-mode');
+            isFullscreen = !isFullscreen;
+            
+            if (isFullscreen) {
+                fullscreenToggle.className = 'fas fa-compress';
+                
+                // Handle real fullscreen API if needed
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+            } else {
+                fullscreenToggle.className = 'fas fa-expand';
+                
+                // Exit real fullscreen if active
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+            
+            // Adjust reader content for better reading experience in fullscreen
+            if (isFullscreen) {
+                document.getElementById("contenuto-libro").style.fontSize = "1.1rem";
+                document.getElementById("contenuto-libro").style.lineHeight = "1.8";
+                document.getElementById("contenuto-libro").style.padding = "30px";
+            } else {
+                document.getElementById("contenuto-libro").style.fontSize = "0.95rem";
+                document.getElementById("contenuto-libro").style.lineHeight = "1.6";
+                document.getElementById("contenuto-libro").style.padding = "20px";
+            }
+        }
 
-
+        // Handle ESC key to exit fullscreen
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
+        });
 
         function toggleTheme() {
             document.body.classList.toggle('light-theme');
@@ -640,6 +744,14 @@
                 
                 // Scroll to content section
                 document.querySelector('.content-section').scrollIntoView({ behavior: 'smooth' });
+                
+                // Suggest fullscreen mode with a subtle animation on the button
+                const fullscreenBtn = document.querySelector('.fullscreen-toggle');
+                fullscreenBtn.classList.add('pulse');
+                setTimeout(() => {
+                    fullscreenBtn.classList.remove('pulse');
+                }, 3000);
+                
                 startTimer();
             } catch (error) {
                 console.error("Error loading book:", error);
