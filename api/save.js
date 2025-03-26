@@ -7,8 +7,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function login() {
     try {
        const { data, error } = await supabase.auth.signIn({
-  email: "tommaso.guglielmi@gmail.com",
-  password: "XdragoSupa21!"
+  email: process.env.USER_DB,
+  password: process.env.USER_PASS
 });
 
         if (error) {
