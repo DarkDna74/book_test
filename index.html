@@ -1,0 +1,969 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enigma Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent: #9c27b0;
+            --accent-light: #bb86fc;
+            --text: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text);
+            padding: 15px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+            background: linear-gradient(45deg, var(--accent-light), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-light), transparent);
+            border-radius: 3px;
+        }
+        
+        .search-container {
+            display: flex;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+        
+        #query {
+            flex: 1;
+            padding: 12px 15px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        #search-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        
+        #search-btn:hover {
+            background: var(--accent-light);
+        }
+        
+        .scaffale {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 20px;
+            padding: 10px 0;
+        }
+        
+        .libro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        .libro:hover {
+            transform: translateY(-5px);
+        }
+        
+        .libro-cover {
+            width: 100%;
+            aspect-ratio: 2/3;
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .libro-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .libro:hover .libro-cover img {
+            transform: scale(1.05);
+        }
+        
+        .libro-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+        }
+        
+        .libro:hover .libro-overlay {
+            opacity: 1;
+        }
+        
+        .read-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transform: translateY(10px);
+            transition: transform 0.3s ease;
+        }
+        
+        .libro:hover .read-btn {
+            transform: translateY(0);
+        }
+        
+        .libro-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            color: var(--text);
+            max-width: 100%;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .libro-author {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            max-width: 100%;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        #next-page {
+            display: none;
+            margin: 20px auto;
+            cursor: pointer;
+            text-align: center;
+            padding: 12px 25px;
+            background: var(--bg-secondary);
+            color: var(--text);
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            max-width: 200px;
+        }
+        
+        #next-page:hover {
+            background: var(--border);
+            transform: translateY(-2px);
+        }
+        
+        .content-section {
+            margin-top: 30px;
+            position: relative;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            font-size: 1.3rem;
+            color: var(--text);
+            position: relative;
+            padding-left: 15px;
+        }
+        
+        h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: var(--accent);
+            border-radius: 3px;
+        }
+        
+        .theme-toggle, .fullscreen-toggle {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        
+        .theme-toggle:hover, .fullscreen-toggle:hover {
+            color: var(--accent-light);
+        }
+        
+        #contenuto-libro {
+            background: var(--bg-secondary);
+            color: var(--text);
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        
+        #contenuto-libro::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #contenuto-libro::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        
+        #contenuto-libro::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(156, 39, 176, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            opacity: 0.6;
+        }
+        
+        .empty-state p {
+            font-size: 1rem;
+        }
+        
+        .light-theme {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --text: #333333;
+            --text-secondary: #666666;
+            --border: #e0e0e0;
+        }
+        
+        /* Ensure proper rendering in reader mode */
+        #contenuto-libro img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #contenuto-libro a {
+            color: var(--accent-light);
+            text-decoration: none;
+        }
+        
+        #contenuto-libro p {
+            margin-bottom: 15px;
+        }
+        
+        #contenuto-libro h1, #contenuto-libro h2, #contenuto-libro h3, 
+        #contenuto-libro h4, #contenuto-libro h5, #contenuto-libro h6 {
+            margin: 20px 0 10px 0;
+            color: var(--accent-light);
+        }
+        
+        /* Fullscreen Styles */
+        .fullscreen-mode .header,
+        .fullscreen-mode .search-container,
+        .fullscreen-mode #scaffale-container,
+        .fullscreen-mode #next-page,
+        .fullscreen-mode h2::before {
+            display: none;
+        }
+        
+        .fullscreen-mode .content-section {
+            margin-top: 0;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            padding: 15px;
+            background-color: var(--bg-primary);
+        }
+        
+        .fullscreen-mode #contenuto-libro {
+            max-height: calc(100vh - 80px);
+            height: calc(100vh - 80px);
+            border-radius: 0;
+            box-shadow: none;
+        }
+        
+        .fullscreen-mode .content-header {
+            position: relative;
+            z-index: 1001;
+        }
+        
+        .fullscreen-mode .exit-fullscreen-btn {
+            display: block;
+        }
+        
+        .buttons-container {
+            display: flex;
+            align-items: center;
+        }
+
+
+        #stats {
+    display: none;
+    background: var(--bg-secondary);
+    color: var(--text);
+    padding: 20px;
+    border-radius: 10px;
+    max-height: 400px;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    position: relative; 
+}
+
+
+/* Ensure the styling matches contenuto-libro for consistency */
+#stats h3 {
+    margin: 20px 0 10px 0;
+    color: var(--accent-light);
+}
+
+.fullscreen-mode #stats {
+    max-height: calc(100vh - 80px);
+    height: calc(100vh - 80px);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.table-container { 
+    max-height: 250px; /* Altezza fissa in modalità normale */
+    overflow-y: auto; 
+    border: 1px solid var(--border);
+    margin-top: 10px;
+}
+.fullscreen-mode .table-container { 
+    max-height: 80%; /* 80% dell'altezza di #stats in fullscreen */
+    overflow-y: auto; 
+}
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    background-color: var(--bg-secondary); /* Usa il colore di sfondo coerente */
+}
+
+th, td { 
+    border: 1px solid var(--border); 
+    padding: 8px; 
+    text-align: left; 
+    color: var(--text); /* Colore testo coerente */
+}
+
+th { 
+    background-color: var(--accent); /* Usa il colore accent per l'intestazione */
+    color: white; 
+}
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Enigma Library</h1>
+    </div>
+    
+    <div class="search-container">
+        <input type="text" id="query" placeholder="Search for title or author...">
+        <button id="search-btn" onclick="cercaEbook()"><i class="fas fa-search"></i></button>
+    </div>
+    
+    <div id="scaffale-container">
+        <div class="empty-state" id="empty-state">
+            <i class="fas fa-book-open"></i>
+            <p>Search for your favorite books and authors to begin exploring</p>
+        </div>
+        <div class="scaffale" id="scaffale"></div>
+    </div>
+    
+    <div id="next-page" onclick="caricaPaginaSuccessiva()">Load More <i class="fas fa-chevron-down"></i></div>
+    
+    <div class="content-section">
+        <div class="content-header">
+            <h2>Book Content</h2>
+            <div class="buttons-container">
+                <button class="theme-toggle" onclick="toggleStatistics()" title="Toggle Statitistics">
+                    <i class="fas fa-magic"></i>
+                </button>
+                <button class="fullscreen-toggle" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+        <div id="contenuto-libro">
+            <div class="empty-state">
+                <i class="fas fa-book"></i>
+                <p>Select a book to start reading</p>
+            </div>
+        </div>
+        <div id="stats"></div>
+
+    </div>
+
+    <script>
+        let nextPageUrl = null;
+        let isLightTheme = false;
+        let isFullscreen = false;
+        
+
+  // Get URL parameters
+         const urlParams = new URLSearchParams(window.location.search);
+        const sessionParam = urlParams.get('format');
+        let id_session = -1;
+        let timer;
+        let saveTimeout;
+        let currentBook = null;
+        let visibleText = "";
+
+        if (sessionParam) {
+            try {
+                id_session = parseInt(sessionParam);
+            } catch (err) {
+                console.error("Error parsing parameter:", err);
+            }
+        }
+
+       /* const readerContent = document.getElementById("stats"); //("reader-content");
+        
+        if (readerContent) {
+            readerContent.addEventListener("touchstart", resetTimer);
+            readerContent.addEventListener("touchmove", resetTimer);
+            readerContent.addEventListener("scroll", resetTimer);
+        }
+        */
+        function resetTimer() {
+          
+            clearTimeout(timer);
+            timer = setTimeout(determineVisibleWords, 5000);
+        }
+        
+        function startTimer() {
+         
+            const readerContent = document.getElementById("idTableCon"); //("reader-content");
+        
+            if (readerContent) {
+              
+                readerContent.addEventListener("touchstart", resetTimer);
+                readerContent.addEventListener("touchmove", resetTimer);
+                readerContent.addEventListener("scroll", resetTimer);
+            }
+             
+            clearTimeout(timer);
+            timer = setTimeout(determineVisibleWords, 5000);
+        }
+
+
+
+        function determineVisibleWords() {
+            let possible_word = [];
+            let tableContainer = document.querySelector(".table-container");
+            let containerBottom = tableContainer.getBoundingClientRect().bottom;
+
+            document.querySelectorAll("#idTable tr td:first-child").forEach(td => {
+                let rect = td.getBoundingClientRect();
+                if (rect.top >= 0 && rect.bottom <= containerBottom) {
+                    possible_word.push(td.innerText.toLowerCase());
+                }
+            });
+
+            if (typeof visibleText !== "string") {
+                console.error("visibleText non è definito correttamente.");
+                return;
+            }
+
+            const words = [...new Set(visibleText.toLowerCase().match(/\b\w+\b/g))];
+            const commonWords = words.filter(word => possible_word.includes(word));
+
+            if (typeof id_session !== 'undefined' && id_session !== -1) {
+                
+                longestWord = commonWords.join(" ");
+                sendToDatabase("", longestWord);
+            }
+
+
+            console.log(commonWords);
+        }
+
+       
+
+        function splitParagraphs(text) {
+            // Miglioramento della divisione in paragrafi
+            if (!text) return "";
+            
+            const sentences = text.split('.');
+            let paragraphs = [];
+            
+            for (let i = 0; i < sentences.length; i++) {
+                const sentence = sentences[i].trim();
+                if (sentence.length > 0) {
+                    paragraphs.push(`<p>${sentence}.</p>`);
+                }
+            }
+            
+            return paragraphs.join('');
+        }
+
+        async function saveVisibleText() {
+            const container = document.getElementById("contenuto-libro");
+            if (!container) return;
+            
+            const containerRect = container.getBoundingClientRect();
+            const paragraphs = container.querySelectorAll("p");
+            visibleText = "";
+            let firstVisibleParagraph = null;
+            let words = [];
+            
+            paragraphs.forEach(p => {
+                const rect = p.getBoundingClientRect();
+                if (rect.bottom > containerRect.top && rect.top < containerRect.bottom) {
+                    if (!firstVisibleParagraph) {
+                        firstVisibleParagraph = p.textContent;
+                        words = [...p.textContent.split(/\s+/)];
+                    }
+                    visibleText += p.textContent + " ";
+                }
+            });
+            
+            if (!visibleText) return;
+            visibleText = visibleText.trim();
+            words = words.filter(word => word.trim().length > 0);
+            
+            const longestWord = words.reduce((longest, word) => {
+                const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                return cleanWord.length > longest.length ? cleanWord : longest;
+            }, "");
+            console.log(visibleText);
+         
+            if (typeof id_session !== 'undefined' && id_session !== -1) {
+            console.log(visibleText);
+//                sendToDatabase(visibleText, longestWord);
+            }
+        }
+        
+        function sendToDatabase(visibleText, longestWord) {
+            fetch("/api/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session: id_session,
+                    first_sentence: visibleText.substring(0, 2000),
+                    longest_word: longestWord,
+                    book_id: currentBook
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error saving data");
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Data saved successfully:", data);
+            })
+            .catch(error => {
+                console.error("Error sending data:", error);
+            });
+        }
+
+        let full_text = null;
+
+
+      
+
+
+
+        async function analyzeText() {
+            const text = full_text;
+            const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+            const wordCounts = {};
+            let totalLength = 0;
+            let longestWord = "";
+            
+            words.forEach(word => {
+                totalLength += word.length;
+                if (word.length > longestWord.length) longestWord = word;
+                wordCounts[word] = (wordCounts[word] || 0) + 1;
+            });
+            
+            const sortedWords = Object.entries(wordCounts).sort((a, b) => a[0].localeCompare(b[0]));
+            const averageLength = words.length ? (totalLength / words.length).toFixed(2) : 0;
+            const totalWords = words.length;
+            const totalUniqueWords = sortedWords.length;
+            
+            let result = `<strong>Parola più lunga:</strong> ${longestWord} (${longestWord.length} lettere)<br>`;
+            result += `<strong>Totale numero di parole:</strong> ${totalWords}<br>`;
+            result += `<strong>Lunghezza media delle parole:</strong> ${averageLength}<br>`;
+           // result += `<strong>Frequenza parole:</strong>`;
+            
+            result += `<div id="idTableCon" class="table-container"><table id="idTable">
+                        <tr><th>Word</th><th>Length</th><th>1/Prob</th></tr>`;
+            
+            sortedWords.forEach(([word, count]) => {
+                let inverseProb = Math.round(totalUniqueWords / count);
+                result += `<tr><td>${word}</td><td>${word.length}</td><td>${inverseProb}</td></tr>`;
+            });
+            
+            result += "</table></div>";
+            document.getElementById("stats").innerHTML = result;
+        }
+
+
+
+        let isStatMode = false;
+
+
+        // You'll want to update these stats dynamically as books are searched/loaded
+        function updateStatistics(books) {
+            const statsDiv = document.getElementById('stats');
+            if (!statsDiv) return;
+
+            const totalBooks = books.length;
+            const uniqueAuthors = new Set(books.map(book => book.author)).size;
+            
+            document.getElementById('total-books').textContent = totalBooks;
+            document.getElementById('unique-authors').textContent = uniqueAuthors;
+        }
+
+
+
+        async function toggleStatistics()
+        {
+            isStatMode = !isStatMode;
+            if ( isStatMode )
+            {
+                await saveVisibleText();
+                document.getElementById("contenuto-libro").style.display="none";
+                document.getElementById("stats").style.display="block";
+         
+                startTimer();
+            } else {
+                
+                document.getElementById("contenuto-libro").style.display="block";
+                document.getElementById("stats").style.display="none";
+            
+            }
+        }
+        function toggleFullscreen() {
+            const body = document.body;
+            const fullscreenToggle = document.querySelector('.fullscreen-toggle i');
+            
+            body.classList.toggle('fullscreen-mode');
+            isFullscreen = !isFullscreen;
+            
+            if (isFullscreen) {
+                fullscreenToggle.className = 'fas fa-compress';
+                
+                // Handle real fullscreen API if needed
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+            } else {
+                fullscreenToggle.className = 'fas fa-expand';
+                
+                // Exit real fullscreen if active
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+            
+            // Adjust reader content for better reading experience in fullscreen
+            if (isFullscreen) {
+                document.getElementById("contenuto-libro").style.fontSize = "1.1rem";
+                document.getElementById("contenuto-libro").style.lineHeight = "1.8";
+                document.getElementById("contenuto-libro").style.padding = "30px";
+            } else {
+                document.getElementById("contenuto-libro").style.fontSize = "0.95rem";
+                document.getElementById("contenuto-libro").style.lineHeight = "1.6";
+                document.getElementById("contenuto-libro").style.padding = "20px";
+            }
+        }
+
+        // Handle ESC key to exit fullscreen
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            isLightTheme = !isLightTheme;
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = isLightTheme ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        async function cercaEbook(url = null) {
+            const query = document.getElementById("query").value;
+            if (!url && !query) return alert("Please enter a search term");
+            
+            // Show loading indicator
+            document.getElementById("scaffale").innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching the library...</p></div>';
+            document.getElementById("empty-state").style.display = "none";
+
+            const searchUrl = url || `https://standardebooks.org/ebooks?query=${encodeURIComponent(query)}`;
+
+            try {
+                const response = await fetch(searchUrl);
+                const text = await response.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+
+                // Find all <li> with typeof="schema:Book"
+                const items = [...doc.querySelectorAll('li[typeof="schema:Book"]')];
+
+                // Build the bookshelf
+                const scaffale = document.getElementById("scaffale");
+                if (!url) scaffale.innerHTML = "";  // Empty the shelf only on first search
+
+                if (items.length === 0) {
+                    scaffale.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>No books found. Try a different search term.</p></div>';
+                } else {
+                    items.forEach((item, index) => {
+                        const about = item.getAttribute("about");
+                        const parts = about.split("/").filter(Boolean);
+                        const autore = parts[1];
+                        const titolo = parts[2];
+
+                        // Find the image path
+                        const imgTag = item.querySelector("img");
+                        const pathImage = imgTag ? imgTag.getAttribute("src") : "/images/covers/default-cover.jpg";
+                        
+                        // Build absolute URL for the image
+                        const img = `https://standardebooks.org${pathImage}`;
+
+                        const linkLibro = `https://standardebooks.org${about}/text/single-page`;
+
+                        const divLibro = document.createElement("div");
+                        divLibro.className = "libro fade-in";
+                        divLibro.style.animationDelay = `${index * 0.05}s`;
+                        
+                        divLibro.innerHTML = `
+                            <div class="libro-cover">
+                                <img src="${img}" alt="${titolo}" onerror="this.src='https://via.placeholder.com/150/333333/FFFFFF?text=No+Cover';">
+                                <div class="libro-overlay">
+                                    <button class="read-btn" onclick="event.stopPropagation(); caricaLibro('${linkLibro}')">
+                                        Read <i class="fas fa-book-open"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="libro-title">${titolo.replace(/-/g, " ")}</div>
+                            <div class="libro-author">${autore.replace(/-/g, " ")}</div>
+                        `;
+                        
+                        divLibro.addEventListener('click', () => caricaLibro(linkLibro));
+                        scaffale.appendChild(divLibro);
+                    });
+                }
+
+                // Find the "Next" link for the next page
+                const nextLink = doc.querySelector('a[rel="next"]');
+                if (nextLink) {
+                    nextPageUrl = `https://standardebooks.org${nextLink.getAttribute("href")}`;
+                    document.getElementById("next-page").style.display = "block";
+                } else {
+                    nextPageUrl = null;
+                    document.getElementById("next-page").style.display = "none";
+                }
+
+            } catch (error) {
+                console.error("Search error:", error);
+                document.getElementById("scaffale").innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Unable to complete search. Please try again later.</p></div>';
+            }
+        }
+
+        async function caricaPaginaSuccessiva() {
+            if (nextPageUrl) {
+                // Change button text to loading indicator
+                const nextPageBtn = document.getElementById("next-page");
+                const originalText = nextPageBtn.innerHTML;
+                nextPageBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                
+                await cercaEbook(nextPageUrl);
+                
+                // Reset button text
+                nextPageBtn.innerHTML = originalText;
+            }
+        }
+
+
+       
+        
+        async function caricaLibro(url) {
+            // Show loading indicator
+            document.getElementById("contenuto-libro").innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading book content...</p></div>';
+            
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "text/html");
+
+                const mainContent = doc.querySelector("main") || doc.querySelector("body");
+                full_text= mainContent?.innerHTML || "Content not available";
+                
+                let contenuto = splitParagraphs(full_text);
+                // Apply fade-in animation
+                document.getElementById("contenuto-libro").innerHTML = `<div class="fade-in">${contenuto}</div>`;
+                
+                // Scroll to content section
+                document.querySelector('.content-section').scrollIntoView({ behavior: 'smooth' });
+                
+                // Suggest fullscreen mode with a subtle animation on the button
+                const fullscreenBtn = document.querySelector('.fullscreen-toggle');
+                fullscreenBtn.classList.add('pulse');
+                setTimeout(() => {
+                    fullscreenBtn.classList.remove('pulse');
+                }, 3000);
+                await analyzeText();
+               // startTimer();
+            } catch (error) {
+                console.error("Error loading book:", error);
+                document.getElementById("contenuto-libro").innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Unable to load book content. Please try again.</p></div>';
+            }
+        }
+
+        // Enter key to search
+        document.getElementById("query").addEventListener("keyup", function(event) {
+            if (event.key === "Enter") {
+                cercaEbook();
+            }
+        });
+
+        // Add pulse animation to search button on page load
+        window.addEventListener('load', function() {
+            document.getElementById("search-btn").classList.add('pulse');
+            setTimeout(() => {
+                document.getElementById("search-btn").classList.remove('pulse');
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
